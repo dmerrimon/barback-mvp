@@ -1,0 +1,57 @@
+{
+  "name": "barback-frontend",
+  "version": "1.0.0",
+  "description": "Barback frontend - checkout-free bar tabs",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.1",
+    "react-scripts": "5.0.1",
+    "styled-components": "^6.1.6",
+    "lucide-react": "^0.294.0",
+    "axios": "^1.6.2",
+    "socket.io-client": "^4.7.5",
+    "@stripe/stripe-js": "^2.4.0",
+    "@stripe/react-stripe-js": "^2.4.0",
+    "react-qr-code": "^2.0.12",
+    "qrcode": "^1.5.3",
+    "uuid": "^9.0.1",
+    "framer-motion": "^10.16.16",
+    "react-hot-toast": "^2.4.1",
+    "react-hook-form": "^7.48.2",
+    "date-fns": "^3.0.6",
+    "recharts": "^2.8.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.1",
+    "web-vitals": "^3.5.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "proxy": "http://localhost:3001"
+}

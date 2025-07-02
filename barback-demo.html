@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barback - Complete UI Demo</title>
+    <style>
+        /* Your exact color scheme */
+        :root {
+            --bg-primary: #FCFCFC;
+            --bg-secondary: #F8F8F8;
+            --bg-card: #FFFFFF;
+            --bg-hover: #F0F0F0;
+            --text-primary: #32302f;
+            --text-secondary: #6B6B6B;
+            --text-muted: #9B9B9B;
+            --accent-primary: #00D4AA;
+            --accent-secondary: #0091FF;
+            --accent-hover: #00B899;
+            --border-color: #E8E8E8;
+            --success-color: #51CF66;
+            --warning-color: #FFD43B;
+            --error-color: #FF6B6B;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #32302f;
+            --bg-secondary: #3A3835;
+            --bg-card: #403E3B;
+            --bg-hover: #4A4845;
+            --text-primary: #fcfcfc;
+            --text-secondary: #B8B8B8;
+            --text-muted: #8A8A8A;
+            --border-color: #4A4845;
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .tab-button.active {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .tab-button:hover:not(.active) {
+            background: var(--bg-hover);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-primary);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .logo-text {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .theme-toggle {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 0.75rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-primary);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-primary);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--accent-primary);
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .session-list {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg);
+            margin-top: 2rem;
+        }
+
+        .session-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            transition: all 0.2s ease;
+        }
+
+        .session-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .customer-info h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .customer-details {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: rgba(81, 207, 102, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-pending {
+            background: rgba(255, 212, 59, 0.1);
+            color: var(--warning-color);
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        .mobile-preview {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            padding: 2rem 1.5rem;
+            max-width: 400px;
+            margin: 2rem auto;
+        }
+
+        .mobile-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .notification {
+            background: var(--accent-primary);
+            color: white;
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-mini {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+        }
+
+        .stat-mini-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .stat-mini-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="notification">
+            🎉 <strong>Barback UI Demo</strong> - Your exact colors (#32302f dark, #FCFCFC light) and complete design system
+        </div>
+
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">B</div>
+                <div class="logo-text">Barback</div>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab-button active" onclick="showTab('home')">🏠 Home</button>
+            <button class="tab-button" onclick="showTab('admin')">⚙️ Admin Dashboard</button>
+            <button class="tab-button" onclick="showTab('bartender')">👥 Bartender</button>
+            <button class="tab-button" onclick="showTab('mobile')">📱 Mobile App</button>
+        </div>
+
+        <!-- Home Tab -->
+        <div id="home" class="tab-content active">
+            <h2 style="margin-bottom: 1rem;">Welcome to Barback</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1.1rem;">
+                Checkout-free bar tab platform with QR codes, real-time dashboards, and seamless payments.
+            </p>
+            
+            <div class="grid">
+                <div class="card">
+                    <div class="card-value">300+</div>
+                    <div class="card-title">Beverage Database</div>
+                    <div class="card-subtitle">Beer, wine, spirits, cocktails with automatic pricing</div>
+                </div>
+                <div class="card">
+                    <div class="card-value">Real-time</div>
+                    <div class="card-title">Session Management</div>
+                    <div class="card-subtitle">Live updates across web and mobile apps</div>
+                </div>
+                <div class="card">
+                    <div class="card-value">Role-based</div>
+                    <div class="card-title">Staff Management</div>
+                    <div class="card-subtitle">Owner, Manager, Bartender, Server permissions</div>
+                </div>
+                <div class="card">
+                    <div class="card-value">Advanced</div>
+                    <div class="card-title">Analytics & Reports</div>
+                    <div class="card-subtitle">Custom filters, date ranges, export options</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard Tab -->
+        <div id="admin" class="tab-content">
+            <h2 style="margin-bottom: 1rem;">Admin Dashboard</h2>
+            
+            <div class="stats-row">
+                <div class="stat-mini">
+                    <div class="stat-mini-value">156</div>
+                    <div class="stat-mini-label">Menu Items</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-value">8</div>
+                    <div class="stat-mini-label">Staff Members</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-value">23</div>
+                    <div class="stat-mini-label">Active Sessions</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-value">2</div>
+                    <div class="stat-mini-label">Beacons</div>
+                </div>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3>Venue Settings</h3>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        Manage venue information, tab settings, and notification preferences
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🍺</div>
+                    <h3>Menu Management</h3>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        Access beverage library with 300+ items and smart pricing
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>Staff Management</h3>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        Role-based access control with customizable permissions
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Notifications</h3>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        Send drink ready alerts and custom messages to customers
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Advanced Reports</h3>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        Revenue analytics with custom filters and export options
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📡</div>
+                    <h3>Beacon Management</h3>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        Configure entry/exit detection and monitor battery levels
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bartender Dashboard Tab -->
+        <div id="bartender" class="tab-content">
+            <h2 style="margin-bottom: 1rem;">Bartender Dashboard</h2>
+            
+            <div class="stats-row">
+                <div class="stat-mini">
+                    <div class="stat-mini-value">23</div>
+                    <div class="stat-mini-label">Active Sessions</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-value">$2,847</div>
+                    <div class="stat-mini-label">Today's Revenue</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-value">8</div>
+                    <div class="stat-mini-label">Pending Orders</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-value">$41.25</div>
+                    <div class="stat-mini-label">Average Tab</div>
+                </div>
+            </div>
+
+            <div class="session-list">
+                <h3 style="margin-bottom: 1rem;">Active Customer Sessions</h3>
+                
+                <div class="session-item">
+                    <div class="customer-info">
+                        <h4>John Doe</h4>
+                        <div class="customer-details">Table 5 • $47.50 • 3 items • 45m ago</div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span class="status-badge status-active">ACTIVE</span>
+                        <button class="btn btn-primary">Add Items</button>
+                        <button class="btn btn-secondary">Notify</button>
+                    </div>
+                </div>
+
+                <div class="session-item">
+                    <div class="customer-info">
+                        <h4>Jane Smith</h4>
+                        <div class="customer-details">Table 3 • $23.75 • 1 item • 20m ago</div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span class="status-badge status-active">ACTIVE</span>
+                        <button class="btn btn-primary">Add Items</button>
+                        <button class="btn btn-secondary">Notify</button>
+                    </div>
+                </div>
+
+                <div class="session-item">
+                    <div class="customer-info">
+                        <h4>Mike Johnson</h4>
+                        <div class="customer-details">Table 7 • $89.25 • 6 items • 1h 15m ago</div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span class="status-badge status-pending">PENDING PAYMENT</span>
+                        <button class="btn btn-primary">Process Payment</button>
+                    </div>
+                </div>
+
+                <div class="session-item">
+                    <div class="customer-info">
+                        <h4>Sarah Wilson</h4>
+                        <div class="customer-details">Table 12 • $156.00 • 8 items • 2h 30m ago</div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span class="status-badge status-active">ACTIVE</span>
+                        <button class="btn btn-primary">Add Items</button>
+                        <button class="btn btn-secondary">Notify</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile App Tab -->
+        <div id="mobile" class="tab-content">
+            <h2 style="margin-bottom: 1rem;">Mobile App Preview</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                React Native app optimized for iPad use at bar stations
+            </p>
+
+            <div class="mobile-preview">
+                <div class="mobile-header">
+                    <div class="logo">
+                        <div class="logo-icon" style="width: 32px; height: 32px; font-size: 1rem;">B</div>
+                        <div style="font-size: 1.25rem; font-weight: 600;">Barback Mobile</div>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">Bartender Dashboard</p>
+                </div>
+                
+                <div class="stats-row" style="margin-bottom: 1.5rem;">
+                    <div class="stat-mini">
+                        <div class="stat-mini-value">23</div>
+                        <div class="stat-mini-label">Sessions</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-value">$2.8K</div>
+                        <div class="stat-mini-label">Revenue</div>
+                    </div>
+                </div>
+
+                <div style="space-y: 1rem;">
+                    <div class="session-item" style="margin-bottom: 0.75rem;">
+                        <div class="customer-info">
+                            <h4 style="font-size: 1rem;">John Doe</h4>
+                            <div class="customer-details" style="font-size: 0.8rem;">Table 5 • $47.50</div>
+                        </div>
+                        <button class="btn btn-primary" style="font-size: 0.8rem; padding: 0.25rem 0.75rem;">Add Items</button>
+                    </div>
+
+                    <div class="session-item" style="margin-bottom: 0.75rem;">
+                        <div class="customer-info">
+                            <h4 style="font-size: 1rem;">Jane Smith</h4>
+                            <div class="customer-details" style="font-size: 0.8rem;">Table 3 • $23.75</div>
+                        </div>
+                        <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.25rem 0.75rem;">Notify</button>
+                    </div>
+
+                    <div class="session-item" style="margin-bottom: 0.75rem;">
+                        <div class="customer-info">
+                            <h4 style="font-size: 1rem;">Mike Johnson</h4>
+                            <div class="customer-details" style="font-size: 0.8rem;">Table 7 • $89.25</div>
+                        </div>
+                        <button class="btn btn-primary" style="font-size: 0.8rem; padding: 0.25rem 0.75rem;">Payment</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; text-align: center;">
+                    <button class="btn btn-primary" style="width: 100%;">+ New Session</button>
+                </div>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Touch Optimized</h3>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        Designed for iPad use at bar stations with large touch targets
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Real-time Sync</h3>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        Live updates across all devices via WebSocket connection
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📶</div>
+                    <h3>Offline Support</h3>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        Continue working during network issues with sync when reconnected
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const toggle = document.querySelector('.theme-toggle');
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            
+            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            toggle.textContent = isDark ? '🌙' : '☀️';
+        }
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => button.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Auto-toggle theme every 10 seconds for demo
+        setInterval(() => {
+            const body = document.body;
+            const toggle = document.querySelector('.theme-toggle');
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            
+            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            toggle.textContent = isDark ? '🌙' : '☀️';
+        }, 10000);
+    </script>
+</body>
+</html>

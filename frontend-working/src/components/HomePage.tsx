@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { ChevronRight, BarChart3, Users, Menu, Bell } from 'lucide-react';
+import { ChevronRight, BarChart3, Users, Menu, Bell, LogOut, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -124,8 +125,52 @@ const ThemeToggle = styled.button`
   }
 `;
 
+const UserInfo = styled.div`
+  position: fixed;
+  top: 2rem;
+  left: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+`;
+
+const UserDetails = styled.div`
+  font-size: 0.9rem;
+`;
+
+const UserName = styled.div`
+  font-weight: 600;
+`;
+
+const UserRole = styled.div`
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-transform: capitalize;
+`;
+
+const LogoutButton = styled.button`
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    color: var(--error-color);
+    background: rgba(255, 107, 107, 0.1);
+  }
+`;
+
 const HomePage: React.FC = () => {
   const [isDark, setIsDark] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -134,6 +179,19 @@ const HomePage: React.FC = () => {
 
   return (
     <Container>
+      {isAuthenticated && user && (
+        <UserInfo>
+          <User size={20} />
+          <UserDetails>
+            <UserName>{user.name}</UserName>
+            <UserRole>{user.role}</UserRole>
+          </UserDetails>
+          <LogoutButton onClick={logout} title="Logout">
+            <LogOut size={18} />
+          </LogoutButton>
+        </UserInfo>
+      )}
+      
       <ThemeToggle onClick={toggleTheme}>
         {isDark ? '☀️' : '🌙'}
       </ThemeToggle>

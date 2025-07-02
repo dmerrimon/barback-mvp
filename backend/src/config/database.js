@@ -49,12 +49,19 @@ async function connectDB() {
 }
 
 async function connectRedis() {
+  // For MVP, Redis is optional - skip if no Redis URL provided
+  if (!process.env.REDIS_URL) {
+    logger.info('Redis URL not provided, skipping Redis connection (MVP mode)');
+    return;
+  }
+  
   try {
     await redisClient.connect();
     logger.info('Redis connection established successfully');
   } catch (error) {
     logger.error('Unable to connect to Redis:', error);
-    throw error;
+    logger.info('Continuing without Redis (MVP mode)');
+    // Don't throw error - continue without Redis for MVP
   }
 }
 

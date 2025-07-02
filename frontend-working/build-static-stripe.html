@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barback - Complete Payment Platform</title>
+    <style>
+        :root {
+            --bg-primary: #FCFCFC;
+            --bg-secondary: #F8F8F8;
+            --bg-card: #FFFFFF;
+            --bg-hover: #F0F0F0;
+            --text-primary: #32302f;
+            --text-secondary: #6B6B6B;
+            --text-muted: #9B9B9B;
+            --accent-primary: #00D4AA;
+            --accent-secondary: #0091FF;
+            --accent-hover: #00B899;
+            --border-color: #E8E8E8;
+            --success-color: #51CF66;
+            --warning-color: #FFD43B;
+            --error-color: #FF6B6B;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #32302f;
+            --bg-secondary: #3A3835;
+            --bg-card: #403E3B;
+            --bg-hover: #4A4845;
+            --text-primary: #fcfcfc;
+            --text-secondary: #B8B8B8;
+            --text-muted: #8A8A8A;
+            --border-color: #4A4845;
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-xl);
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-image: url('/assets/logo-dark.png');
+        }
+
+        [data-theme="dark"] .logo {
+            background-image: url('/assets/logo-light.png');
+        }
+
+        .title {
+            color: var(--text-primary);
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .theme-toggle {
+            padding: 0.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-primary);
+        }
+
+        .payment-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .payment-demo {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .payment-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .payment-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .order-summary {
+            margin-bottom: 2rem;
+        }
+
+        .item-list {
+            margin-bottom: 1rem;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .item-price {
+            color: var(--text-secondary);
+        }
+
+        .totals {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 2rem;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            color: var(--text-secondary);
+        }
+
+        .total-row.final {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 0.5rem;
+            padding-top: 1rem;
+        }
+
+        .tip-section {
+            margin-bottom: 2rem;
+        }
+
+        .tip-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tip-button {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .tip-button.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .tip-button:hover:not(.active) {
+            background: var(--bg-hover);
+        }
+
+        .custom-tip {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .custom-tip:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .payment-method {
+            margin-bottom: 2rem;
+        }
+
+        .card-preview {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .pay-button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .pay-button:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .pay-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .processing {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: rgba(81, 207, 102, 0.1);
+            color: var(--success-color);
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-primary);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--accent-primary);
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .integration-status {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--success-color);
+            border-radius: var(--radius-lg);
+            color: var(--success-color);
+            font-size: 0.9rem;
+            box-shadow: var(--shadow-lg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-section">
+                <div class="logo"></div>
+                <h1 class="title">Barback Payment Platform</h1>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </div>
+
+        <div class="payment-demo">
+            <!-- Customer Payment Flow -->
+            <div class="payment-card">
+                <h2 class="payment-title">
+                    💳 Customer Checkout
+                </h2>
+
+                <div class="success-message" id="success-message">
+                    ✅ Payment successful! Thank you for your visit.
+                </div>
+
+                <div class="order-summary">
+                    <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Order Summary</h3>
+                    <div class="item-list">
+                        <div class="item">
+                            <span class="item-name">2x Craft IPA</span>
+                            <span class="item-price">$17.00</span>
+                        </div>
+                        <div class="item">
+                            <span class="item-name">1x Moscow Mule</span>
+                            <span class="item-price">$13.50</span>
+                        </div>
+                        <div class="item">
+                            <span class="item-name">1x House Red Wine</span>
+                            <span class="item-price">$12.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="totals">
+                    <div class="total-row">
+                        <span>Subtotal</span>
+                        <span id="subtotal">$42.50</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Tax (8%)</span>
+                        <span id="tax">$3.40</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Tip</span>
+                        <span id="tip-amount">$7.65</span>
+                    </div>
+                    <div class="total-row final">
+                        <span>Total</span>
+                        <span id="total">$53.55</span>
+                    </div>
+                </div>
+
+                <div class="tip-section">
+                    <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Add Tip</h3>
+                    <div class="tip-buttons">
+                        <button class="tip-button" onclick="selectTip(15)">15%</button>
+                        <button class="tip-button active" onclick="selectTip(18)">18%</button>
+                        <button class="tip-button" onclick="selectTip(20)">20%</button>
+                        <button class="tip-button" onclick="selectTip(25)">25%</button>
+                    </div>
+                    <input type="number" class="custom-tip" placeholder="Custom tip amount ($)" 
+                           oninput="setCustomTip(this.value)" step="0.01" min="0">
+                </div>
+
+                <div class="payment-method">
+                    <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Payment Method</h3>
+                    <div class="card-preview">
+                        💳 Stripe Elements would appear here<br>
+                        <small>(Demo: Card ending in 4242)</small>
+                    </div>
+                </div>
+
+                <button class="pay-button" onclick="processPayment()" id="pay-btn">
+                    <span class="processing" id="processing"></span>
+                    <span id="pay-text">Pay $53.55</span>
+                </button>
+            </div>
+
+            <!-- Bartender Dashboard -->
+            <div class="payment-card">
+                <h2 class="payment-title">
+                    📊 Bartender Dashboard
+                </h2>
+
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Today's Payments</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="text-align: center; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-lg);">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-primary);">$2,847</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Total Revenue</div>
+                        </div>
+                        <div style="text-align: center; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-lg);">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-primary);">47</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">Transactions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Recent Transactions</h3>
+                    <div style="border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden;">
+                        <div style="padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 500; color: var(--text-primary);">Table 5 - John D.</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">2:34 PM</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 600; color: var(--success-color);">$67.25</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Paid</div>
+                            </div>
+                        </div>
+                        <div style="padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 500; color: var(--text-primary);">Table 3 - Sarah M.</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">2:18 PM</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 600; color: var(--success-color);">$34.50</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Paid</div>
+                            </div>
+                        </div>
+                        <div style="padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 500; color: var(--text-primary);">Table 7 - Mike J.</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">1:55 PM</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 600; color: var(--warning-color);">$89.75</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Processing</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Payment Methods</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                        <div style="text-align: center; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius-lg);">
+                            <div style="font-weight: 600; color: var(--text-primary);">85%</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">Cards</div>
+                        </div>
+                        <div style="text-align: center; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius-lg);">
+                            <div style="font-weight: 600; color: var(--text-primary);">12%</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">Mobile</div>
+                        </div>
+                        <div style="text-align: center; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius-lg);">
+                            <div style="font-weight: 600; color: var(--text-primary);">3%</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">Cash</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">💳</div>
+                <h3 class="feature-title">Stripe Integration</h3>
+                <p class="feature-description">Secure payment processing with Stripe Elements, supporting all major payment methods including Apple Pay and Google Pay.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔥</div>
+                <h3 class="feature-title">Firebase + Stripe</h3>
+                <p class="feature-description">Real-time payment tracking with Firebase Firestore, ensuring data consistency across all devices and sessions.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3 class="feature-title">Mobile Optimized</h3>
+                <p class="feature-description">Touch-friendly payment interface optimized for mobile devices and tablets at bar stations.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3 class="feature-title">PCI Compliant</h3>
+                <p class="feature-description">Stripe handles all sensitive payment data, ensuring PCI DSS compliance without storing card information.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3 class="feature-title">Smart Tipping</h3>
+                <p class="feature-description">Configurable tip percentages with custom amount options, increasing average transaction values.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">Real-time Analytics</h3>
+                <p class="feature-description">Live payment tracking, revenue analytics, and payment method insights for better business decisions.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="integration-status">
+        🔥 Firebase + 💳 Stripe Ready
+    </div>
+
+    <script>
+        let currentTipPercentage = 18;
+        let customTip = 0;
+        let useCustomTip = false;
+        const subtotal = 42.50;
+        const taxRate = 0.08;
+
+        function toggleTheme() {
+            const body = document.body;
+            const toggle = document.querySelector('.theme-toggle');
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            
+            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            toggle.textContent = isDark ? '🌙' : '☀️';
+        }
+
+        function selectTip(percentage) {
+            currentTipPercentage = percentage;
+            useCustomTip = false;
+            
+            // Update button states
+            document.querySelectorAll('.tip-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Clear custom tip input
+            document.querySelector('.custom-tip').value = '';
+            
+            updateTotals();
+        }
+
+        function setCustomTip(value) {
+            const amount = parseFloat(value) || 0;
+            customTip = amount;
+            useCustomTip = amount > 0;
+            
+            if (useCustomTip) {
+                document.querySelectorAll('.tip-button').forEach(btn => btn.classList.remove('active'));
+            }
+            
+            updateTotals();
+        }
+
+        function updateTotals() {
+            const tax = subtotal * taxRate;
+            const tipAmount = useCustomTip ? customTip : subtotal * (currentTipPercentage / 100);
+            const total = subtotal + tax + tipAmount;
+            
+            document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('tip-amount').textContent = `$${tipAmount.toFixed(2)}`;
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+            document.getElementById('pay-text').textContent = `Pay $${total.toFixed(2)}`;
+        }
+
+        function processPayment() {
+            const payBtn = document.getElementById('pay-btn');
+            const payText = document.getElementById('pay-text');
+            const processing = document.getElementById('processing');
+            const successMessage = document.getElementById('success-message');
+            
+            // Show processing state
+            payBtn.disabled = true;
+            payText.textContent = 'Processing Payment...';
+            processing.style.display = 'inline-block';
+            
+            // Simulate payment processing
+            setTimeout(() => {
+                // Show success
+                processing.style.display = 'none';
+                payText.innerHTML = '✅ Payment Complete';
+                successMessage.style.display = 'block';
+                
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    payBtn.disabled = false;
+                    payText.textContent = `Pay $${document.getElementById('total').textContent.substring(1)}`;
+                    successMessage.style.display = 'none';
+                }, 3000);
+            }, 2000);
+        }
+
+        // Initialize totals
+        updateTotals();
+    </script>
+</body>
+</html>

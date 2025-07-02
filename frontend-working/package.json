@@ -24,6 +24,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "mkdir -p build && cp build-static-stripe-live.html build/index.html && echo 'Live Stripe payment platform deployed - Ready for real transactions!'",
+    "build-customer": "mkdir -p build && cp build-customer-app.html build/index.html && echo 'Customer app with budget management deployed!'",
+    "build-bartender": "mkdir -p build && cp build-static-stripe-live.html build/index.html && echo 'Bartender dashboard with live payments deployed!'",
     "build-react": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

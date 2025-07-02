@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barback - Checkout-Free Bar Experience</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        :root {
+            --primary: #00D4AA;
+            --primary-dark: #00B899;
+            --secondary: #0091FF;
+            --dark: #32302f;
+            --light: #FCFCFC;
+            --gray: #6B6B6B;
+            --success: #51CF66;
+            --warning: #FFD43B;
+            --error: #FF6B6B;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .budget-progress {
+            transition: width 0.5s ease;
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .drink-card:hover {
+            transform: translateY(-4px);
+            transition: transform 0.2s ease;
+        }
+
+        .hidden { display: none !important; }
+        .show { display: block !important; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Landing Page -->
+    <div id="landing-page" class="min-h-screen gradient-bg flex items-center justify-center p-4">
+        <div class="max-w-md w-full space-y-6">
+            <!-- Hero Section -->
+            <div class="text-center text-white fade-in">
+                <div class="w-20 h-20 mx-auto mb-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <i data-lucide="zap" class="w-10 h-10"></i>
+                </div>
+                <h1 class="text-4xl font-bold mb-4">Welcome to Barback</h1>
+                <p class="text-xl mb-8 opacity-90">The checkout-free bar experience. Set your budget, scan to start, and enjoy without waiting in line.</p>
+            </div>
+
+            <!-- Value Propositions -->
+            <div class="space-y-4 fade-in">
+                <div class="glass-card rounded-xl p-4 flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                        <i data-lucide="wallet" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="text-white">
+                        <h3 class="font-semibold">Smart Budget Control</h3>
+                        <p class="text-sm opacity-90">Set spending limits and track in real-time</p>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-xl p-4 flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                        <i data-lucide="qr-code" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="text-white">
+                        <h3 class="font-semibold">Instant Tab Opening</h3>
+                        <p class="text-sm opacity-90">Scan QR code to start your tab instantly</p>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-xl p-4 flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                        <i data-lucide="smartphone" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div class="text-white">
+                        <h3 class="font-semibold">No Lines, No Wait</h3>
+                        <p class="text-sm opacity-90">Order and pay from your phone</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA Button -->
+            <button onclick="showBudgetSetup()" class="w-full bg-white text-gray-900 font-semibold py-4 px-6 rounded-xl hover:bg-gray-100 transition-colors pulse">
+                Get Started - Set Your Budget
+            </button>
+
+            <p class="text-center text-white text-sm opacity-75">
+                Secure payments powered by Stripe
+            </p>
+        </div>
+    </div>
+
+    <!-- Budget Setup -->
+    <div id="budget-setup" class="hidden min-h-screen bg-white p-4">
+        <div class="max-w-md mx-auto py-8">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <button onclick="showLanding()" class="absolute left-4 top-8 p-2 text-gray-600">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Set Your Budget</h2>
+                <p class="text-gray-600">Choose how much you want to spend tonight</p>
+            </div>
+
+            <!-- Quick Budget Options -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-4 text-gray-900">Quick Select</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="setBudget(50)" class="budget-option p-4 border-2 border-gray-200 rounded-xl text-center hover:border-green-500 transition-colors">
+                        <div class="text-2xl font-bold text-gray-900">$50</div>
+                        <div class="text-sm text-gray-600">Light Night</div>
+                    </button>
+                    <button onclick="setBudget(100)" class="budget-option p-4 border-2 border-gray-200 rounded-xl text-center hover:border-green-500 transition-colors">
+                        <div class="text-2xl font-bold text-gray-900">$100</div>
+                        <div class="text-sm text-gray-600">Good Times</div>
+                    </button>
+                    <button onclick="setBudget(150)" class="budget-option p-4 border-2 border-gray-200 rounded-xl text-center hover:border-green-500 transition-colors">
+                        <div class="text-2xl font-bold text-gray-900">$150</div>
+                        <div class="text-sm text-gray-600">Celebration</div>
+                    </button>
+                    <button onclick="setBudget(200)" class="budget-option p-4 border-2 border-gray-200 rounded-xl text-center hover:border-green-500 transition-colors">
+                        <div class="text-2xl font-bold text-gray-900">$200+</div>
+                        <div class="text-sm text-gray-600">Big Night</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Custom Budget -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-4 text-gray-900">Custom Amount</h3>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-gray-500 text-xl">$</span>
+                    </div>
+                    <input type="number" id="custom-budget" placeholder="0.00" min="10" max="500" 
+                           class="block w-full pl-8 pr-3 py-4 border border-gray-300 rounded-xl text-2xl font-semibold text-center focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                           oninput="updateCustomBudget(this.value)">
+                </div>
+            </div>
+
+            <!-- Budget Benefits -->
+            <div class="bg-green-50 rounded-xl p-4 mb-8">
+                <div class="flex items-start space-x-3">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-green-600 mt-1"></i>
+                    <div>
+                        <h4 class="font-semibold text-green-900">Smart Spending Protection</h4>
+                        <p class="text-sm text-green-700 mt-1">We'll alert you at 75% and stop purchases at your limit to keep you on track.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Continue Button -->
+            <button id="continue-budget" onclick="showQRScanner()" disabled 
+                    class="w-full bg-green-600 text-white font-semibold py-4 px-6 rounded-xl disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-green-700 transition-colors">
+                Continue to QR Scan
+            </button>
+        </div>
+    </div>
+
+    <!-- QR Scanner -->
+    <div id="qr-scanner" class="hidden min-h-screen bg-white p-4">
+        <div class="max-w-md mx-auto py-8">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <button onclick="showBudgetSetup()" class="absolute left-4 top-8 p-2 text-gray-600">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Scan to Start</h2>
+                <p class="text-gray-600">Find the QR code at your table or bar</p>
+            </div>
+
+            <!-- QR Scanner Mockup -->
+            <div class="relative bg-black rounded-xl overflow-hidden mb-8" style="aspect-ratio: 1;">
+                <div class="absolute inset-4 border-2 border-white rounded-lg opacity-50"></div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div class="w-32 h-32 border-4 border-green-500 rounded-lg animate-pulse"></div>
+                </div>
+                <div class="absolute bottom-4 left-4 right-4 text-center">
+                    <p class="text-white text-sm">Position QR code within the frame</p>
+                </div>
+            </div>
+
+            <!-- Demo QR Code -->
+            <div class="text-center mb-8">
+                <p class="text-gray-600 mb-4">Demo: Tap the QR code below</p>
+                <button onclick="simulateQRScan()" class="mx-auto bg-white border-2 border-gray-300 rounded-xl p-4 hover:border-green-500 transition-colors">
+                    <div class="w-24 h-24 bg-black"></div>
+                    <p class="text-sm text-gray-600 mt-2">Table 5 - Demo Bar</p>
+                </button>
+            </div>
+
+            <!-- Manual Entry -->
+            <div class="border-t pt-6">
+                <p class="text-center text-gray-600 mb-4">Can't scan? Enter table number</p>
+                <div class="flex space-x-2">
+                    <input type="text" placeholder="Table #" 
+                           class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                    <button onclick="simulateQRScan()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        Start Tab
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Tab -->
+    <div id="active-tab" class="hidden min-h-screen bg-gray-50">
+        <!-- Status Bar -->
+        <div class="bg-white shadow-sm p-4">
+            <div class="max-w-md mx-auto flex items-center justify-between">
+                <div>
+                    <h3 class="font-semibold text-gray-900">Table 5 - Demo Bar</h3>
+                    <p class="text-sm text-gray-600">Tab opened at <span id="tab-time"></span></p>
+                </div>
+                <button onclick="showCheckout()" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+                    Close Tab
+                </button>
+            </div>
+        </div>
+
+        <!-- Budget Progress -->
+        <div class="bg-white p-4 border-b">
+            <div class="max-w-md mx-auto">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-700">Budget Used</span>
+                    <span class="text-sm font-semibold text-gray-900">$<span id="spent-amount">0.00</span> / $<span id="budget-amount">0</span></span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                    <div id="budget-bar" class="budget-progress bg-green-500 h-3 rounded-full" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>$0</span>
+                    <span id="budget-warning" class="hidden text-orange-600 font-medium">⚠️ 75% reached</span>
+                    <span>$<span id="budget-limit">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Order Section -->
+        <div class="max-w-md mx-auto p-4">
+            <!-- Categories -->
+            <div class="flex space-x-2 mb-6 overflow-x-auto">
+                <button onclick="showCategory('beer')" class="category-btn whitespace-nowrap px-4 py-2 bg-white rounded-full border hover:bg-gray-50 transition-colors" data-category="beer">
+                    🍺 Beer
+                </button>
+                <button onclick="showCategory('cocktails')" class="category-btn whitespace-nowrap px-4 py-2 bg-white rounded-full border hover:bg-gray-50 transition-colors" data-category="cocktails">
+                    🍸 Cocktails
+                </button>
+                <button onclick="showCategory('wine')" class="category-btn whitespace-nowrap px-4 py-2 bg-white rounded-full border hover:bg-gray-50 transition-colors" data-category="wine">
+                    🍷 Wine
+                </button>
+                <button onclick="showCategory('shots')" class="category-btn whitespace-nowrap px-4 py-2 bg-white rounded-full border hover:bg-gray-50 transition-colors" data-category="shots">
+                    🥃 Shots
+                </button>
+            </div>
+
+            <!-- Drink Menu -->
+            <div id="menu-beer" class="menu-category space-y-3">
+                <h4 class="font-semibold text-gray-900 mb-3">🍺 Beer Selection</h4>
+                <div class="drink-card bg-white rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onclick="addToTab('Craft IPA', 8.50)">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="font-semibold text-gray-900">Craft IPA</h5>
+                            <p class="text-sm text-gray-600">Local brewery, hoppy & citrusy</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-gray-900">$8.50</div>
+                            <div class="text-xs text-green-600">+ Add</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="drink-card bg-white rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onclick="addToTab('Light Beer', 6.00)">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="font-semibold text-gray-900">Light Beer</h5>
+                            <p class="text-sm text-gray-600">Crisp and refreshing</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-gray-900">$6.00</div>
+                            <div class="text-xs text-green-600">+ Add</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="drink-card bg-white rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onclick="addToTab('Wheat Beer', 7.50)">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="font-semibold text-gray-900">Wheat Beer</h5>
+                            <p class="text-sm text-gray-600">Smooth and cloudy</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-gray-900">$7.50</div>
+                            <div class="text-xs text-green-600">+ Add</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="menu-cocktails" class="menu-category space-y-3 hidden">
+                <h4 class="font-semibold text-gray-900 mb-3">🍸 Signature Cocktails</h4>
+                <div class="drink-card bg-white rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onclick="addToTab('Moscow Mule', 13.50)">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="font-semibold text-gray-900">Moscow Mule</h5>
+                            <p class="text-sm text-gray-600">Vodka, ginger beer, lime</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-gray-900">$13.50</div>
+                            <div class="text-xs text-green-600">+ Add</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="drink-card bg-white rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onclick="addToTab('Old Fashioned', 15.00)">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="font-semibold text-gray-900">Old Fashioned</h5>
+                            <p class="text-sm text-gray-600">Bourbon, bitters, orange</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-gray-900">$15.00</div>
+                            <div class="text-xs text-green-600">+ Add</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="drink-card bg-white rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onclick="addToTab('Margarita', 12.00)">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="font-semibold text-gray-900">Margarita</h5>
+                            <p class="text-sm text-gray-600">Tequila, lime, triple sec</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-gray-900">$12.00</div>
+                            <div class="text-xs text-green-600">+ Add</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="menu-wine" class="menu-category space-y-3 hidden">
+                <h4 class="font-semibold text-gray-900 mb-3">🍷 Wine Selection</h4>
+                <div class="drink-card bg-white rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onclick="addToTab('House Red', 12.00)">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="font-semibold text-gray-900">House Red</h5>
+                            <p class="text-sm text-gray-600">Cabernet Sauvignon</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-gray-900">$12.00</div>
+                            <div class="text-xs text-green-600">+ Add</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="drink-card bg-white rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onclick="addToTab('House White', 11.00)">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="font-semibold text-gray-900">House White</h5>
+                            <p class="text-sm text-gray-600">Sauvignon Blanc</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-gray-900">$11.00</div>
+                            <div class="text-xs text-green-600">+ Add</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="drink-card bg-white rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onclick="addToTab('Prosecco', 14.00)">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="font-semibold text-gray-900">Prosecco</h5>
+                            <p class="text-sm text-gray-600">Italian sparkling</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-gray-900">$14.00</div>
+                            <div class="text-xs text-green-600">+ Add</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="menu-shots" class="menu-category space-y-3 hidden">
+                <h4 class="font-semibold text-gray-900 mb-3">🥃 Shots & Spirits</h4>
+                <div class="drink-card bg-white rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onclick="addToTab('Whiskey Shot', 8.00)">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="font-semibold text-gray-900">Whiskey Shot</h5>
+                            <p class="text-sm text-gray-600">Premium bourbon</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-gray-900">$8.00</div>
+                            <div class="text-xs text-green-600">+ Add</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="drink-card bg-white rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onclick="addToTab('Tequila Shot', 7.00)">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="font-semibold text-gray-900">Tequila Shot</h5>
+                            <p class="text-sm text-gray-600">Silver tequila</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-gray-900">$7.00</div>
+                            <div class="text-xs text-green-600">+ Add</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="drink-card bg-white rounded-xl p-4 border hover:shadow-md transition-shadow cursor-pointer" onclick="addToTab('Vodka Shot', 7.50)">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="font-semibold text-gray-900">Vodka Shot</h5>
+                            <p class="text-sm text-gray-600">Premium vodka</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-gray-900">$7.50</div>
+                            <div class="text-xs text-green-600">+ Add</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Tab Summary -->
+            <div id="tab-summary" class="hidden bg-white rounded-xl p-4 border-2 border-green-500 mt-6">
+                <h4 class="font-semibold text-gray-900 mb-3">Current Order</h4>
+                <div id="tab-items" class="space-y-2 mb-4">
+                    <!-- Items will be added here -->
+                </div>
+                <div class="border-t pt-3">
+                    <div class="flex justify-between items-center text-lg font-semibold">
+                        <span>Subtotal:</span>
+                        <span>$<span id="subtotal">0.00</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <div class="fixed bottom-4 right-4">
+            <button onclick="showCheckout()" class="bg-green-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-green-700 transition-colors">
+                <i data-lucide="credit-card" class="w-6 h-6"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Checkout Page -->
+    <div id="checkout-page" class="hidden min-h-screen bg-white p-4">
+        <div class="max-w-md mx-auto py-8">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <button onclick="showActiveTab()" class="absolute left-4 top-8 p-2 text-gray-600">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Close Your Tab</h2>
+                <p class="text-gray-600">Review and pay for your order</p>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                <h3 class="font-semibold text-gray-900 mb-3">Order Summary</h3>
+                <div id="checkout-items" class="space-y-2 mb-4">
+                    <!-- Items will be populated here -->
+                </div>
+                
+                <div class="border-t border-gray-200 pt-3 space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Subtotal</span>
+                        <span>$<span id="checkout-subtotal">0.00</span></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Tax (8%)</span>
+                        <span>$<span id="checkout-tax">0.00</span></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Tip</span>
+                        <span>$<span id="checkout-tip">0.00</span></span>
+                    </div>
+                    <div class="flex justify-between text-lg font-semibold border-t border-gray-200 pt-2">
+                        <span>Total</span>
+                        <span>$<span id="checkout-total">0.00</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tip Selection -->
+            <div class="mb-6">
+                <h3 class="font-semibold text-gray-900 mb-3">Add Tip</h3>
+                <div class="grid grid-cols-4 gap-2 mb-3">
+                    <button onclick="selectTip(15)" class="tip-btn py-3 border-2 border-gray-200 rounded-lg text-center hover:border-green-500 transition-colors">
+                        <div class="font-semibold">15%</div>
+                    </button>
+                    <button onclick="selectTip(18)" class="tip-btn py-3 border-2 border-green-500 bg-green-50 rounded-lg text-center transition-colors">
+                        <div class="font-semibold text-green-700">18%</div>
+                    </button>
+                    <button onclick="selectTip(20)" class="tip-btn py-3 border-2 border-gray-200 rounded-lg text-center hover:border-green-500 transition-colors">
+                        <div class="font-semibold">20%</div>
+                    </button>
+                    <button onclick="selectTip(25)" class="tip-btn py-3 border-2 border-gray-200 rounded-lg text-center hover:border-green-500 transition-colors">
+                        <div class="font-semibold">25%</div>
+                    </button>
+                </div>
+                <input type="number" id="custom-tip" placeholder="Custom tip ($)" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                       oninput="updateCustomTip(this.value)">
+            </div>
+
+            <!-- Payment Method -->
+            <div class="mb-6">
+                <h3 class="font-semibold text-gray-900 mb-3">Payment Method</h3>
+                <div id="card-element" class="p-4 border border-gray-300 rounded-lg bg-gray-50">
+                    <div class="text-center text-gray-600">
+                        💳 Stripe payment form will appear here
+                        <div class="text-sm mt-2">Demo: Any payment will succeed</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pay Button -->
+            <button onclick="processPayment()" id="pay-button" 
+                    class="w-full bg-green-600 text-white font-semibold py-4 px-6 rounded-xl hover:bg-green-700 transition-colors">
+                <span id="pay-button-text">Pay $<span id="pay-amount">0.00</span></span>
+                <span id="pay-loading" class="hidden">Processing...</span>
+            </button>
+
+            <!-- Security Notice -->
+            <p class="text-center text-gray-500 text-sm mt-4">
+                🔒 Secure payment powered by Stripe
+            </p>
+        </div>
+    </div>
+
+    <!-- Success Page -->
+    <div id="success-page" class="hidden min-h-screen bg-green-50 flex items-center justify-center p-4">
+        <div class="max-w-md w-full text-center">
+            <div class="bg-white rounded-xl p-8 shadow-lg">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="check" class="w-8 h-8 text-green-600"></i>
+                </div>
+                
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Payment Successful!</h2>
+                <p class="text-gray-600 mb-6">Thank you for visiting Demo Bar. Your receipt has been sent to your email.</p>
+                
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <div class="text-sm text-gray-600">Final Total</div>
+                    <div class="text-2xl font-bold text-gray-900">$<span id="final-total">0.00</span></div>
+                </div>
+
+                <div class="space-y-3">
+                    <button onclick="startOver()" class="w-full bg-green-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors">
+                        Start New Tab
+                    </button>
+                    <button onclick="viewReceipt()" class="w-full border border-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-lg hover:bg-gray-50 transition-colors">
+                        View Receipt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // App State
+        let appState = {
+            budget: 0,
+            spent: 0,
+            tabItems: [],
+            currentTipPercentage: 18,
+            customTip: 0,
+            useCustomTip: false,
+            tabStartTime: null
+        };
+
+        // Navigation Functions
+        function showLanding() {
+            hideAllPages();
+            document.getElementById('landing-page').classList.remove('hidden');
+        }
+
+        function showBudgetSetup() {
+            hideAllPages();
+            document.getElementById('budget-setup').classList.remove('hidden');
+            document.getElementById('budget-setup').classList.add('slide-in');
+        }
+
+        function showQRScanner() {
+            if (appState.budget === 0) {
+                alert('Please set a budget first');
+                return;
+            }
+            hideAllPages();
+            document.getElementById('qr-scanner').classList.remove('hidden');
+            document.getElementById('qr-scanner').classList.add('slide-in');
+        }
+
+        function showActiveTab() {
+            hideAllPages();
+            document.getElementById('active-tab').classList.remove('hidden');
+            updateBudgetDisplay();
+            updateTabSummary();
+        }
+
+        function showCheckout() {
+            if (appState.tabItems.length === 0) {
+                alert('Add some drinks to your tab first!');
+                return;
+            }
+            hideAllPages();
+            document.getElementById('checkout-page').classList.remove('hidden');
+            updateCheckoutSummary();
+        }
+
+        function hideAllPages() {
+            const pages = ['landing-page', 'budget-setup', 'qr-scanner', 'active-tab', 'checkout-page', 'success-page'];
+            pages.forEach(page => {
+                document.getElementById(page).classList.add('hidden');
+                document.getElementById(page).classList.remove('slide-in', 'fade-in');
+            });
+        }
+
+        // Budget Functions
+        function setBudget(amount) {
+            appState.budget = amount;
+            
+            // Update UI
+            document.querySelectorAll('.budget-option').forEach(btn => {
+                btn.classList.remove('border-green-500', 'bg-green-50');
+                btn.classList.add('border-gray-200');
+            });
+            
+            event.target.classList.remove('border-gray-200');
+            event.target.classList.add('border-green-500', 'bg-green-50');
+            
+            document.getElementById('custom-budget').value = '';
+            document.getElementById('continue-budget').disabled = false;
+            
+            updateBudgetDisplay();
+        }
+
+        function updateCustomBudget(value) {
+            const amount = parseFloat(value) || 0;
+            if (amount >= 10) {
+                appState.budget = amount;
+                document.querySelectorAll('.budget-option').forEach(btn => {
+                    btn.classList.remove('border-green-500', 'bg-green-50');
+                    btn.classList.add('border-gray-200');
+                });
+                document.getElementById('continue-budget').disabled = false;
+            } else {
+                document.getElementById('continue-budget').disabled = true;
+            }
+            updateBudgetDisplay();
+        }
+
+        function updateBudgetDisplay() {
+            document.getElementById('budget-amount').textContent = appState.budget;
+            document.getElementById('budget-limit').textContent = appState.budget;
+            document.getElementById('spent-amount').textContent = appState.spent.toFixed(2);
+            
+            const percentage = (appState.spent / appState.budget) * 100;
+            const budgetBar = document.getElementById('budget-bar');
+            
+            if (budgetBar) {
+                budgetBar.style.width = Math.min(percentage, 100) + '%';
+                
+                // Update color based on percentage
+                if (percentage >= 100) {
+                    budgetBar.className = 'budget-progress bg-red-500 h-3 rounded-full';
+                } else if (percentage >= 75) {
+                    budgetBar.className = 'budget-progress bg-orange-500 h-3 rounded-full';
+                    document.getElementById('budget-warning').classList.remove('hidden');
+                } else {
+                    budgetBar.className = 'budget-progress bg-green-500 h-3 rounded-full';
+                    document.getElementById('budget-warning').classList.add('hidden');
+                }
+            }
+        }
+
+        // QR Scanner Functions
+        function simulateQRScan() {
+            appState.tabStartTime = new Date();
+            showActiveTab();
+            document.getElementById('tab-time').textContent = appState.tabStartTime.toLocaleTimeString();
+            
+            // Show first category by default
+            showCategory('beer');
+        }
+
+        // Menu Functions
+        function showCategory(category) {
+            // Hide all categories
+            document.querySelectorAll('.menu-category').forEach(cat => {
+                cat.classList.add('hidden');
+            });
+            
+            // Show selected category
+            document.getElementById('menu-' + category).classList.remove('hidden');
+            
+            // Update button states
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('bg-green-500', 'text-white');
+                btn.classList.add('bg-white');
+            });
+            
+            event.target.classList.remove('bg-white');
+            event.target.classList.add('bg-green-500', 'text-white');
+        }
+
+        function addToTab(itemName, price) {
+            // Check budget
+            if (appState.spent + price > appState.budget) {
+                alert(`Adding this item would exceed your $${appState.budget} budget. Current total: $${appState.spent.toFixed(2)}`);
+                return;
+            }
+            
+            // Add item to tab
+            const existingItem = appState.tabItems.find(item => item.name === itemName);
+            if (existingItem) {
+                existingItem.quantity += 1;
+                existingItem.total = existingItem.price * existingItem.quantity;
+            } else {
+                appState.tabItems.push({
+                    name: itemName,
+                    price: price,
+                    quantity: 1,
+                    total: price
+                });
+            }
+            
+            appState.spent += price;
+            updateBudgetDisplay();
+            updateTabSummary();
+            
+            // Show visual feedback
+            showAddedNotification(itemName);
+        }
+
+        function showAddedNotification(itemName) {
+            // Create temporary notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            notification.textContent = `Added ${itemName}`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
+        }
+
+        function updateTabSummary() {
+            const tabSummary = document.getElementById('tab-summary');
+            const tabItems = document.getElementById('tab-items');
+            const subtotal = document.getElementById('subtotal');
+            
+            if (appState.tabItems.length === 0) {
+                tabSummary.classList.add('hidden');
+                return;
+            }
+            
+            tabSummary.classList.remove('hidden');
+            
+            // Update items list
+            tabItems.innerHTML = '';
+            appState.tabItems.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'flex justify-between items-center';
+                itemDiv.innerHTML = `
+                    <span>${item.quantity}x ${item.name}</span>
+                    <span>$${item.total.toFixed(2)}</span>
+                `;
+                tabItems.appendChild(itemDiv);
+            });
+            
+            subtotal.textContent = appState.spent.toFixed(2);
+        }
+
+        // Checkout Functions
+        function updateCheckoutSummary() {
+            const checkoutItems = document.getElementById('checkout-items');
+            const subtotalSpan = document.getElementById('checkout-subtotal');
+            const taxSpan = document.getElementById('checkout-tax');
+            const tipSpan = document.getElementById('checkout-tip');
+            const totalSpan = document.getElementById('checkout-total');
+            const payAmount = document.getElementById('pay-amount');
+            
+            // Update items
+            checkoutItems.innerHTML = '';
+            appState.tabItems.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'flex justify-between';
+                itemDiv.innerHTML = `
+                    <span>${item.quantity}x ${item.name}</span>
+                    <span>$${item.total.toFixed(2)}</span>
+                `;
+                checkoutItems.appendChild(itemDiv);
+            });
+            
+            // Calculate totals
+            const subtotal = appState.spent;
+            const tax = subtotal * 0.08;
+            const tipAmount = appState.useCustomTip ? appState.customTip : subtotal * (appState.currentTipPercentage / 100);
+            const total = subtotal + tax + tipAmount;
+            
+            subtotalSpan.textContent = subtotal.toFixed(2);
+            taxSpan.textContent = tax.toFixed(2);
+            tipSpan.textContent = tipAmount.toFixed(2);
+            totalSpan.textContent = total.toFixed(2);
+            payAmount.textContent = total.toFixed(2);
+        }
+
+        function selectTip(percentage) {
+            appState.currentTipPercentage = percentage;
+            appState.useCustomTip = false;
+            appState.customTip = 0;
+            
+            // Update tip button states
+            document.querySelectorAll('.tip-btn').forEach(btn => {
+                btn.classList.remove('border-green-500', 'bg-green-50', 'text-green-700');
+                btn.classList.add('border-gray-200');
+            });
+            
+            event.target.classList.remove('border-gray-200');
+            event.target.classList.add('border-green-500', 'bg-green-50');
+            event.target.querySelector('div').classList.add('text-green-700');
+            
+            document.getElementById('custom-tip').value = '';
+            updateCheckoutSummary();
+        }
+
+        function updateCustomTip(value) {
+            const amount = parseFloat(value) || 0;
+            appState.customTip = amount;
+            appState.useCustomTip = amount > 0;
+            
+            if (appState.useCustomTip) {
+                document.querySelectorAll('.tip-btn').forEach(btn => {
+                    btn.classList.remove('border-green-500', 'bg-green-50', 'text-green-700');
+                    btn.classList.add('border-gray-200');
+                });
+            }
+            
+            updateCheckoutSummary();
+        }
+
+        function processPayment() {
+            const payButton = document.getElementById('pay-button');
+            const payButtonText = document.getElementById('pay-button-text');
+            const payLoading = document.getElementById('pay-loading');
+            
+            // Show loading state
+            payButton.disabled = true;
+            payButtonText.classList.add('hidden');
+            payLoading.classList.remove('hidden');
+            
+            // Simulate payment processing
+            setTimeout(() => {
+                const total = parseFloat(document.getElementById('checkout-total').textContent);
+                document.getElementById('final-total').textContent = total.toFixed(2);
+                
+                hideAllPages();
+                document.getElementById('success-page').classList.remove('hidden');
+                document.getElementById('success-page').classList.add('fade-in');
+                
+                // Reset button state
+                payButton.disabled = false;
+                payButtonText.classList.remove('hidden');
+                payLoading.classList.add('hidden');
+            }, 2000);
+        }
+
+        function startOver() {
+            // Reset app state
+            appState = {
+                budget: 0,
+                spent: 0,
+                tabItems: [],
+                currentTipPercentage: 18,
+                customTip: 0,
+                useCustomTip: false,
+                tabStartTime: null
+            };
+            
+            // Reset budget buttons
+            document.querySelectorAll('.budget-option').forEach(btn => {
+                btn.classList.remove('border-green-500', 'bg-green-50');
+                btn.classList.add('border-gray-200');
+            });
+            
+            document.getElementById('continue-budget').disabled = true;
+            document.getElementById('custom-budget').value = '';
+            
+            showLanding();
+        }
+
+        function viewReceipt() {
+            alert('Receipt functionality would open a detailed receipt view or PDF download.');
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            showLanding();
+        });
+    </script>
+</body>
+</html>

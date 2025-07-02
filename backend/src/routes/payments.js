@@ -1,11 +1,87 @@
 const express = require('express');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripeService = require('../services/stripeService');
+const receiptService = require('../services/receiptService');
 const { Payment, Session } = require('../models');
 const { validatePayment } = require('../middleware/validation');
 const logger = require('../utils/logger');
 
-// Create payment intent
+// Create payment intent (NEW: Live Stripe Integration)
+router.post('/create-payment-intent', async (req, res) => {
+  try {
+    const { sessionId, amount, customerId, metadata = {} } = req.body;
+
+    // Use Stripe service for payment intent creation
+    const result = await stripeService.createPaymentIntent({
+      amount,
+      customerId,
+      metadata: { sessionId, ...metadata }
+    });
+
+    res.json({
+      success: true,
+      paymentIntent: result
+    });
+
+  } catch (error) {
+    logger.error('Error creating payment intent:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to create payment intent'
+    });
+  }
+});
+
+// Create or get customer
+router.post('/create-customer', async (req, res) => {
+  try {
+    const customerData = req.body;
+    const customer = await stripeService.createCustomer(customerData);
+
+    res.json({
+      success: true,
+      customer
+    });
+
+  } catch (error) {
+    logger.error('Error creating customer:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to create customer'
+    });
+  }
+});
+
+// Calculate total with tax and tip
+router.post('/calculate-total', async (req, res) => {
+  try {
+    const { subtotal, tipPercentage = 0, taxRate = 0.08 } = req.body;
+    
+    const tax = subtotal * taxRate;
+    const tipAmount = subtotal * (tipPercentage / 100);
+    const total = subtotal + tax + tipAmount;
+
+    res.json({
+      success: true,
+      totals: {
+        subtotal,
+        tax,
+        tipAmount,
+        total
+      }
+    });
+
+  } catch (error) {
+    logger.error('Error calculating total:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to calculate total'
+    });
+  }
+});
+
+// Legacy payment intent endpoint
 router.post('/create-intent', async (req, res) => {
   try {
     const { sessionId, paymentMethodId, amount, billingDetails } = req.body;
@@ -351,5 +427,87 @@ async function handleChargeDispute(charge) {
   logger.warn(`Dispute created for charge: ${charge.id}`);
   // TODO: Implement dispute handling logic
 }
+
+// Generate receipt for payment
+router.get('/receipt/:paymentId', async (req, res) => {
+  try {
+    const { paymentId } = req.params;
+    const { email } = req.query;
+
+    const receipt = await receiptService.processReceipt(paymentId, email);
+
+    res.json({
+      success: true,
+      receipt: {
+        id: receipt.receiptData.id,
+        url: receipt.receiptURL,
+        emailSent: receipt.emailSent || false
+      }
+    });
+
+  } catch (error) {
+    logger.error('Error generating receipt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate receipt'
+    });
+  }
+});
+
+// Get receipt HTML for display
+router.get('/receipt/:paymentId/view', async (req, res) => {
+  try {
+    const { paymentId } = req.params;
+    const receipt = await receiptService.processReceipt(paymentId);
+
+    res.setHeader('Content-Type', 'text/html');
+    res.send(receipt.htmlContent);
+
+  } catch (error) {
+    logger.error('Error viewing receipt:', error);
+    res.status(500).send('<h1>Error loading receipt</h1>');
+  }
+});
+
+// Add tip to existing payment
+router.post('/add-tip', async (req, res) => {
+  try {
+    const { paymentIntentId, tipAmount } = req.body;
+    
+    const result = await stripeService.addTip(paymentIntentId, tipAmount);
+
+    res.json({
+      success: true,
+      tipPayment: result
+    });
+
+  } catch (error) {
+    logger.error('Error adding tip:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to add tip'
+    });
+  }
+});
+
+// Get payment details
+router.get('/payment/:paymentIntentId', async (req, res) => {
+  try {
+    const { paymentIntentId } = req.params;
+    const payment = await stripeService.getPaymentDetails(paymentIntentId);
+
+    res.json({
+      success: true,
+      payment
+    });
+
+  } catch (error) {
+    logger.error('Error getting payment details:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to get payment details'
+    });
+  }
+});
 
 module.exports = router;

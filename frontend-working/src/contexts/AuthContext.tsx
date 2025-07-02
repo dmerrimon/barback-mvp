@@ -1,7 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { 
+  signInUser, 
+  signOutUser, 
+  onAuthStateChange, 
+  getUserData,
+  createDemoAccounts,
+  USER_ROLES
+} from '../services/authService';
+import { initializeVenueWithDemoData } from '../services/firestoreService';
 
 interface User {
-  id: string;
+  uid: string;
   email: string;
   role: 'owner' | 'manager' | 'bartender' | 'server';
   name: string;
@@ -33,66 +42,103 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [demoAccountsCreated, setDemoAccountsCreated] = useState(false);
 
-  // Check for existing session on mount
+  // Initialize demo venue and accounts on first load
   useEffect(() => {
-    const savedUser = localStorage.getItem('barback_user');
-    if (savedUser) {
+    const initializeDemoData = async () => {
       try {
-        setUser(JSON.parse(savedUser));
+        const demoVenueId = 'demo-venue-001';
+        
+        // Check if demo accounts were already created
+        const created = localStorage.getItem('demo_accounts_created');
+        if (!created && !demoAccountsCreated) {
+          // Initialize demo venue
+          await initializeVenueWithDemoData(demoVenueId, 'The Digital Tap');
+          
+          // Create demo accounts
+          await createDemoAccounts(demoVenueId);
+          
+          localStorage.setItem('demo_accounts_created', 'true');
+          setDemoAccountsCreated(true);
+          console.log('Demo accounts and venue initialized');
+        }
       } catch (error) {
-        console.error('Failed to parse saved user:', error);
-        localStorage.removeItem('barback_user');
+        console.log('Demo initialization completed or accounts exist:', error.message);
       }
-    }
-    setIsLoading(false);
+    };
+
+    initializeDemoData();
+  }, [demoAccountsCreated]);
+
+  // Listen for authentication state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+      setIsLoading(true);
+      
+      if (firebaseUser) {
+        try {
+          // Get additional user data from Firestore
+          const userData = await getUserData(firebaseUser.uid);
+          
+          if (userData) {
+            const user: User = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              role: userData.role,
+              name: userData.name || firebaseUser.displayName || 'User',
+              venueId: userData.venueId || 'demo-venue-001'
+            };
+            setUser(user);
+          } else {
+            // User exists in Firebase Auth but not in Firestore
+            console.error('User data not found in Firestore');
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+      
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const login = async (credentials: { email: string; password: string; role: string }) => {
     setIsLoading(true);
     
     try {
-      // For MVP, create mock user based on role and email
-      const mockUser: User = {
-        id: `user_${Date.now()}`,
-        email: credentials.email,
-        role: credentials.role as User['role'],
-        name: getUserNameFromEmail(credentials.email, credentials.role),
-        venueId: 'venue_demo_001'
-      };
-
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // For demo purposes, accept any password that's not empty
-      if (credentials.password.length === 0) {
-        throw new Error('Password is required');
+      // Sign in with Firebase
+      const firebaseUser = await signInUser(credentials.email, credentials.password);
+      
+      // Get user data from Firestore
+      const userData = await getUserData(firebaseUser.uid);
+      
+      if (!userData) {
+        throw new Error('User data not found. Please contact support.');
       }
 
-      setUser(mockUser);
-      localStorage.setItem('barback_user', JSON.stringify(mockUser));
+      // Firebase auth state listener will handle setting the user
     } catch (error) {
       console.error('Login failed:', error);
-      throw error;
-    } finally {
       setIsLoading(false);
+      throw error;
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('barback_user');
-  };
-
-  const getUserNameFromEmail = (email: string, role: string): string => {
-    const emailMap: Record<string, string> = {
-      'owner@thedigitaltap.com': 'Sarah Johnson',
-      'manager@thedigitaltap.com': 'Mike Chen',
-      'bartender@thedigitaltap.com': 'Alex Rodriguez',
-      'server@thedigitaltap.com': 'Emma Davis'
-    };
-
-    return emailMap[email] || `${role.charAt(0).toUpperCase() + role.slice(1)} User`;
+  const logout = async () => {
+    try {
+      await signOutUser();
+      // Firebase auth state listener will handle clearing the user
+    } catch (error) {
+      console.error('Logout failed:', error);
+      throw error;
+    }
   };
 
   const value = {

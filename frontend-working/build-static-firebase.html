@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barback - Checkout-Free Bar Tabs</title>
+    <style>
+        :root {
+            --bg-primary: #FCFCFC;
+            --bg-secondary: #F8F8F8;
+            --bg-card: #FFFFFF;
+            --bg-hover: #F0F0F0;
+            --text-primary: #32302f;
+            --text-secondary: #6B6B6B;
+            --text-muted: #9B9B9B;
+            --accent-primary: #00D4AA;
+            --accent-secondary: #0091FF;
+            --accent-hover: #00B899;
+            --border-color: #E8E8E8;
+            --success-color: #51CF66;
+            --warning-color: #FFD43B;
+            --error-color: #FF6B6B;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #32302f;
+            --bg-secondary: #3A3835;
+            --bg-card: #403E3B;
+            --bg-hover: #4A4845;
+            --text-primary: #fcfcfc;
+            --text-secondary: #B8B8B8;
+            --text-muted: #8A8A8A;
+            --border-color: #4A4845;
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 3rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--radius-xl);
+            margin: 0 auto 1rem;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-image: url('/assets/logo-dark.png');
+        }
+
+        [data-theme="dark"] .logo {
+            background-image: url('/assets/logo-light.png');
+        }
+
+        .title {
+            color: var(--text-primary);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .label {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background: var(--bg-card);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .login-button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .demo-credentials {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .demo-title {
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .demo-role {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .demo-role:hover {
+            background: var(--bg-hover);
+            margin: 0 -1rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-lg);
+        }
+
+        .demo-role:last-child {
+            border-bottom: none;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-primary);
+        }
+
+        .success-message {
+            background: var(--accent-primary);
+            color: white;
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .error-message {
+            background: var(--error-color);
+            color: white;
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .firebase-status {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .firebase-connected {
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        .dashboard-container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .dashboard-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .dashboard-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .dashboard-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-primary);
+        }
+
+        .card-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--accent-primary);
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .user-info {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            color: var(--text-primary);
+        }
+
+        .user-name {
+            font-weight: 600;
+        }
+
+        .user-role {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: capitalize;
+        }
+
+        .logout-button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: var(--radius-lg);
+            transition: all 0.2s ease;
+        }
+
+        .logout-button:hover {
+            color: var(--error-color);
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    
+    <div class="firebase-status" id="firebase-status">
+        🔄 Connecting to Firebase...
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="auth-container">
+        <div class="login-card">
+            <div class="logo-container">
+                <div class="logo"></div>
+                <h1 class="title">Barback</h1>
+                <p class="subtitle">Sign in with Firebase Authentication</p>
+            </div>
+
+            <div class="success-message" id="success-message">
+                ✅ Login successful! Welcome to Barback.
+            </div>
+
+            <div class="error-message" id="error-message">
+                ❌ Login failed. Please check your credentials.
+            </div>
+
+            <form class="form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="label">Email Address</label>
+                    <input type="email" class="input" id="email" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="label">Password</label>
+                    <input type="password" class="input" id="password" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="login-button" id="login-btn">
+                    <span id="login-text">Sign In</span>
+                    <span id="login-spinner" class="loading-spinner hidden"></span>
+                </button>
+            </form>
+
+            <div class="demo-credentials">
+                <h3 class="demo-title">Firebase Demo Accounts:</h3>
+                <div class="demo-role" onclick="fillDemo('owner@thedigitaltap.com', 'demo123')">
+                    <span><strong>Owner:</strong> owner@thedigitaltap.com</span>
+                    <span>demo123</span>
+                </div>
+                <div class="demo-role" onclick="fillDemo('manager@thedigitaltap.com', 'demo123')">
+                    <span><strong>Manager:</strong> manager@thedigitaltap.com</span>
+                    <span>demo123</span>
+                </div>
+                <div class="demo-role" onclick="fillDemo('bartender@thedigitaltap.com', 'demo123')">
+                    <span><strong>Bartender:</strong> bartender@thedigitaltap.com</span>
+                    <span>demo123</span>
+                </div>
+                <div class="demo-role" onclick="fillDemo('server@thedigitaltap.com', 'demo123')">
+                    <span><strong>Server:</strong> server@thedigitaltap.com</span>
+                    <span>demo123</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboard-screen" class="dashboard-container hidden">
+        <div class="user-info" id="user-info">
+            <div>🔥</div>
+            <div>
+                <div class="user-name" id="user-name">Loading...</div>
+                <div class="user-role" id="user-role">Firebase User</div>
+            </div>
+            <button class="logout-button" onclick="logout()" title="Logout">⏻</button>
+        </div>
+
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">🍻 Welcome to Barback</h1>
+            <p class="dashboard-subtitle">Powered by Firebase - Real authentication & database!</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-icon">🔥</div>
+                <h3 class="card-title">Firebase Authentication</h3>
+                <p class="card-description">Real user authentication with Firebase Auth. Secure login, role-based access, and session management.</p>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-icon">🗄️</div>
+                <h3 class="card-title">Firestore Database</h3>
+                <p class="card-description">Cloud Firestore for real-time data storage. User profiles, venues, sessions, and menu items stored securely.</p>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-icon">⚙️</div>
+                <h3 class="card-title">Admin Dashboard</h3>
+                <p class="card-description">Manage venue settings, staff, menu items, beacons, and analytics. Complete control over your bar operations.</p>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-icon">👥</div>
+                <h3 class="card-title">Bartender Interface</h3>
+                <p class="card-description">Real-time session management, customer tabs, order processing, and payment handling for busy bar staff.</p>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-icon">📱</div>
+                <h3 class="card-title">Mobile App</h3>
+                <p class="card-description">React Native app optimized for iPad use at bar stations with touch-friendly interface and offline support.</p>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-icon">📊</div>
+                <h3 class="card-title">Real-time Analytics</h3>
+                <p class="card-description">Live revenue tracking, custom reports, staff performance, and detailed business insights with Firebase.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc, setDoc, collection, addDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDrhm1i_ah_4QZ92zvi1FNSMevObs-cytY",
+            authDomain: "barback-e9e6c.firebaseapp.com",
+            projectId: "barback-e9e6c",
+            storageBucket: "barback-e9e6c.firebasestorage.app",
+            messagingSenderId: "251170911522",
+            appId: "1:251170911522:web:f55b5e8778185ddaff617b",
+            measurementId: "G-PTT088MMVW"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+
+        // Update Firebase status
+        document.getElementById('firebase-status').textContent = '🔥 Firebase Connected';
+        document.getElementById('firebase-status').classList.add('firebase-connected');
+
+        let currentUser = null;
+
+        // Auth state listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    // Get user data from Firestore
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        currentUser = {
+                            uid: user.uid,
+                            email: user.email,
+                            name: userData.name || user.displayName || 'User',
+                            role: userData.role || 'user'
+                        };
+                        showDashboard();
+                    } else {
+                        console.log('User document not found');
+                        currentUser = null;
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                    currentUser = null;
+                }
+            } else {
+                currentUser = null;
+                showLogin();
+            }
+        });
+
+        // Make functions available globally
+        window.handleLogin = async (event) => {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('login-btn');
+            const loginText = document.getElementById('login-text');
+            const loginSpinner = document.getElementById('login-spinner');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+
+            // Reset messages
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            // Show loading state
+            loginBtn.disabled = true;
+            loginText.classList.add('hidden');
+            loginSpinner.classList.remove('hidden');
+
+            try {
+                // Sign in with Firebase
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                
+                // Show success message
+                successMessage.style.display = 'block';
+                
+                // Auth state listener will handle the rest
+            } catch (error) {
+                console.error('Login error:', error);
+                
+                // Show error message
+                errorMessage.textContent = `❌ ${error.message}`;
+                errorMessage.style.display = 'block';
+                
+                // Reset loading state
+                loginBtn.disabled = false;
+                loginText.classList.remove('hidden');
+                loginSpinner.classList.add('hidden');
+            }
+        };
+
+        window.logout = async () => {
+            try {
+                await signOut(auth);
+                // Auth state listener will handle UI update
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        };
+
+        window.fillDemo = (email, password) => {
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = password;
+        };
+
+        function showLogin() {
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            
+            // Reset form
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('success-message').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+            
+            // Reset login button
+            const loginBtn = document.getElementById('login-btn');
+            const loginText = document.getElementById('login-text');
+            const loginSpinner = document.getElementById('login-spinner');
+            loginBtn.disabled = false;
+            loginText.classList.remove('hidden');
+            loginSpinner.classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            
+            // Update user info
+            if (currentUser) {
+                document.getElementById('user-name').textContent = currentUser.name;
+                document.getElementById('user-role').textContent = currentUser.role;
+            }
+        }
+
+        // Create demo accounts if they don't exist
+        async function createDemoAccounts() {
+            // This would normally be done on the server side
+            // For demo purposes, we'll just log that Firebase is ready
+            console.log('Firebase initialized and ready for demo accounts');
+        }
+
+        createDemoAccounts();
+    </script>
+
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const toggle = document.querySelector('.theme-toggle');
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            
+            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            toggle.textContent = isDark ? '🌙' : '☀️';
+        }
+    </script>
+</body>
+</html>

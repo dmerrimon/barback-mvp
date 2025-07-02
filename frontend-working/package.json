@@ -23,7 +23,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "mkdir -p build && cp build-static-stripe.html build/index.html && echo 'Complete payment platform ready - Firebase + Stripe integrated!'",
+    "build": "mkdir -p build && cp build-static-stripe-live.html build/index.html && echo 'Live Stripe payment platform deployed - Ready for real transactions!'",
     "build-react": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

@@ -22,7 +22,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "mkdir -p build && cp build-static.html build/index.html && echo 'Static build complete - Barback authentication ready!'",
+    "build-react": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

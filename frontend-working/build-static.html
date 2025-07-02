@@ -79,15 +79,16 @@
         .logo {
             width: 80px;
             height: 80px;
-            background: var(--accent-primary);
             border-radius: var(--radius-xl);
-            display: flex;
-            align-items: center;
-            justify-content: center;
             margin: 0 auto 1rem;
-            color: white;
-            font-size: 2rem;
-            font-weight: bold;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-image: url('/assets/logo-dark.png');
+        }
+
+        [data-theme="dark"] .logo {
+            background-image: url('/assets/logo-light.png');
         }
 
         .title {
@@ -346,7 +347,7 @@
     <div id="login-screen" class="auth-container">
         <div class="login-card">
             <div class="logo-container">
-                <div class="logo">B</div>
+                <div class="logo"></div>
                 <h1 class="title">Barback</h1>
                 <p class="subtitle">Sign in to your account</p>
             </div>
@@ -535,14 +536,7 @@
             document.getElementById('success-message').style.display = 'none';
         }
 
-        // Auto-toggle theme for demo
-        let themeTimer = 0;
-        setInterval(() => {
-            themeTimer++;
-            if (themeTimer % 15 === 0) { // Every 15 seconds
-                toggleTheme();
-            }
-        }, 1000);
+        // Theme toggle is now manual only - no auto-toggling
     </script>
 </body>
 </html>
